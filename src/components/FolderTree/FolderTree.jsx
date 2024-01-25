@@ -14,7 +14,6 @@ import './FolderTree.scss';
 
 const FolderTree = ({
   data,
-  onChange = console.log,   // eslint-disable-line
   initCheckedStatus = 'unchecked',
   initOpenStatus = 'open',
   iconComponents = {},
@@ -26,7 +25,8 @@ const FolderTree = ({
     initCheckedStatus,
     initOpenStatus,
   };
-  const { treeState, reducers } = useTreeState({ data, options, onChange });
+  const { treeState, reducers } = useTreeState({ data, options });
+  
   const {
     checkNode,
     renameNode,
@@ -36,7 +36,6 @@ const FolderTree = ({
   } = reducers;
 
   if (!treeState) return null;
-
   const configs = {
     handleCheck: checkNode,
     handleRename: renameNode,
@@ -49,7 +48,7 @@ const FolderTree = ({
     indentPixels,
     readOnly,
   };
-
+  
   /* ----------
     - custom configs are passed down in context, which is same for each tree node
     - tree node specific data is passed recursively to each node, which is different for each node
@@ -71,7 +70,6 @@ const FolderTree = ({
 
 FolderTree.propTypes = {
   data: PropTypes.object.isRequired,
-  onChange: PropTypes.func,
 
   initCheckedStatus: PropTypes.string,
   initOpenStatus: PropTypes.string,
