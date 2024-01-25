@@ -14,7 +14,6 @@ import './FolderTree.scss';
 
 const FolderTree = ({
   data,
-  onChange = console.log,   // eslint-disable-line
   initCheckedStatus = 'unchecked',
   initOpenStatus = 'open',
   iconComponents = {},
@@ -26,7 +25,7 @@ const FolderTree = ({
     initCheckedStatus,
     initOpenStatus,
   };
-  const { treeState, reducers } = useTreeState({ data, options, onChange });
+  const { treeState, reducers } = useTreeState({ data, options });
   const {
     checkNode,
     renameNode,
