@@ -1,5 +1,5 @@
 import React from 'react';
-import FolderTree, { testData } from '../FolderTree/FolderTree';
+import FolderTree from '../FolderTree/FolderTree';
 
 /* eslint-disable */
 const SandBox = () => {
@@ -7,10 +7,14 @@ const SandBox = () => {
     name: 'my-app',
     children: [],
 };
+const handleFileClick = (file) => {
+  console.log('File Clicked:', file);
+};
   return (
     <div className='demo-sandbox'>
       <FolderTree
         data={ treeState }
+        onNameClick={handleFileClick}
       />
     </div>
   );
