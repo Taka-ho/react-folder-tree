@@ -14,13 +14,12 @@ import {
 
 import ConfigContext from '../FolderTree/context';
 import EditableName from '../EditableName/EditableName';
-//import AddFolder from '../AddFolder/AddFolder';
+
 import {
   iconContainerClassName,
   iconClassName,
   getDefaultIcon,
 } from '../../utils/iconUtils';
-
 
 const TreeNode = ({
   path,
@@ -41,6 +40,7 @@ const TreeNode = ({
     handleAddNode,
     handleToggleOpen,
 
+    onNameClick,
     iconComponents,
     indentPixels,
   } = useContext(ConfigContext);
@@ -74,43 +74,32 @@ const TreeNode = ({
       : 'FolderIcon';
   }
 
-    // ローカルストレージからデータを読み込む関数
-    const loadFromLocalStorage = (key) => {
-      const data = localStorage.getItem(key);
-      return data ? JSON.parse(data) : null;
-    };
-  
-    // ローカルストレージにデータを保存する関数
-    const saveToLocalStorage = (key, data) => {
-      localStorage.setItem(key, JSON.stringify(data));
-    };
-  
-    // ファイルまたはフォルダの名前が変更されたときにローカルストレージを更新する関数
-    const updateLocalStorage = (updatedName) => {
-      const storedData = loadFromLocalStorage('treeData') || {};
-      storedData[path.join('_')] = updatedName;
-      saveToLocalStorage('treeData', storedData);
-    };
-  
-    // コンポーネントがマウントされたときにローカルストレージからデータを読み込む
-    useEffect(() => {
-      const storedData = loadFromLocalStorage('treeData');
-      if (storedData && storedData[path.join('_')]) {
-        handleRename(path, storedData[path.join('_')]);
-      }
-    }, []);
-
-//この2つの関数がフォルダの開閉を担っている
-  const openMe = () => handleToggleOpen(path, true);
-  const closeMe = () => handleToggleOpen(path, false);
-
-  const handleContextMenu = (e) => {
-    e.preventDefault();
-    setContextMenu({ visible: true, x: e.clientX, y: e.clientY });
-
-    // コンテキストメニューが表示されるときにドキュメント全体で一度だけクリックを監視
-    document.addEventListener('click', handleDocumentClickOnce, { once: true });
+  // ローカルストレージからデータを読み込む関数
+  const loadFromLocalStorage = key => {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : null;
   };
+
+  // ローカルストレージにデータを保存する関数
+  const saveToLocalStorage = (key, data) => {
+    localStorage.setItem(key, JSON.stringify(data));
+  };
+
+  // ファイルまたはフォルダの名前が変更されたときにローカルストレージを更新する関数
+  const updateLocalStorage = updatedName => {
+    const storedData = loadFromLocalStorage('treeData') || {};
+    storedData[path.join('_')] = updatedName;
+    saveToLocalStorage('treeData', storedData);
+  };
+
+  // コンポーネントがマウントされたときにローカルストレージからデータを読み込む
+  useEffect(() => {
+    const storedData = loadFromLocalStorage('treeData');
+    if (storedData && storedData[path.join('_')]) {
+      handleRename(path, storedData[path.join('_')]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDocumentClickOnce = () => {
     // ドキュメントがクリックされたらコンテキストメニューを閉じる
@@ -120,18 +109,25 @@ const TreeNode = ({
     document.removeEventListener('click', handleDocumentClickOnce);
   };
 
-  const deleteMe = (path) => {
+  const handleContextMenu = e => {
+    e.preventDefault();
+    setContextMenu({ visible: true, x: e.clientX, y: e.clientY });
+
+    // コンテキストメニューが表示されるときにドキュメント全体で一度だけクリックを監視
+    document.addEventListener('click', handleDocumentClickOnce, { once: true });
+  };
+
+  const deleteMe = () => {
     const key = path.join('_');
     localStorage.removeItem(key);
     handleDelete(path);
   };
-  
 
   const editMe = () => {
     setIsEditing(true);
     setIsSelected(false);
   };
-  const onNameChange = (newName) => {
+  const onNameChange = newName => {
     handleRename(path, newName);
     setIsEditing(false);
     updateLocalStorage(newName);
@@ -150,41 +146,43 @@ const TreeNode = ({
     >
       {isFolder ? (
         <div>
-          <a className='contextMenu' onClick={ editMe }>名前の変更</a><br />
-          <a className='contextMenu' onClick={() => deleteMe(path)}>削除する</a><br />
-          <a className='contextMenu' onClick={() => handleAddNode(path, false)}>ファイルを追加する</a><br />
-          <a className='contextMenu' onClick={() => handleAddNode(path, true)}>フォルダの追加</a><br />
+          <div className='contextMenu' onClick={ editMe }>名前の変更</div>
+          <div className='contextMenu' onClick={ () => deleteMe(path) }>削除する</div>
+          <div className='contextMenu' onClick={ () => handleAddNode(path, false) }>ファイルを追加する</div>
+          <div className='contextMenu' onClick={ () => handleAddNode(path, true) }>フォルダの追加</div>
         </div>
       ) : (
         <div>
-          <a className='contextMenu' onClick={ editMe }>名前の変更</a><br />
-          <a className='contextMenu' onClick={() => deleteMe(path)}>削除する</a>
+          <div className='contextMenu' onClick={ editMe }>名前の変更</div>
+          <div className='contextMenu' onClick={ () => deleteMe(path) }>削除する</div>
         </div>
       )}
     </div>
   );
-
+  // この2つの関数がフォルダの開閉を担っている
+  const openMe = () => handleToggleOpen(path, true);
+  const closeMe = () => handleToggleOpen(path, false);
   const handleElementClick = () => {
     if (isFolder) {
       isFolder && isOpen ? closeMe() : openMe();
     }
-
+    // onNameClick プロパティが存在する場合、呼び出す
     onNameClick && onNameClick(nodeData);
   };
 
   const folderCaret = (
-    <span className={iconContainerClassName('caretContainer')}>
+    <span className={ iconContainerClassName('caretContainer') }>
       {isOpen ? (
         <CaretDownIcon
-          className={iconClassName('CaretDownIcon')}
-          onClick={closeMe}
-          nodeData={nodeData}
+          className={ iconClassName('CaretDownIcon') }
+          onClick={ closeMe }
+          nodeData={ nodeData }
         />
       ) : (
         <CaretRightIcon
-          className={iconClassName('CaretRightIcon')}
-          onClick={openMe}
-          nodeData={nodeData}
+          className={ iconClassName('CaretRightIcon') }
+          onClick={ openMe }
+          nodeData={ nodeData }
         />
       )}
     </span>
@@ -192,39 +190,37 @@ const TreeNode = ({
 
   return (
     <>
-      <div className="TreeNode" style={treeNodeStyle}>
+      <div className='TreeNode' style={ treeNodeStyle }>
         {isFolder && folderCaret}
 
-        <span className={iconContainerClassName('typeIconContainer')}>
+        <span className={ iconContainerClassName('typeIconContainer') }>
           <TypeIcon
-            className={iconClassName(TypeIconType)}
-            onClick={handleElementClick}
-            nodeData={nodeData}
+            className={ iconClassName(TypeIconType) }
+            onClick={ handleElementClick }
+            nodeData={ nodeData }
           />
         </span>
 
         <span
-          className={iconContainerClassName('editableNameContainer')}
-          onClick={handleElementClick}
-          onContextMenu={handleContextMenu}
+          className={ iconContainerClassName('editableNameContainer') }
+          onClick={ handleElementClick }
+          onContextMenu={ handleContextMenu }
         >
           <EditableName
-            isEditing={isEditing}
-            setIsEditing={setIsEditing}
-            onNameChange={onNameChange}
-            nodeData={nodeData}
+            isEditing={ isEditing }
+            setIsEditing={ setIsEditing }
+            onNameChange={ onNameChange }
+            nodeData={ nodeData }
           />
         </span>
-        {isSelected && TreeNodeToolBar}
+        { isSelected }
       </div>
 
-      {contextMenuContent}
+      { contextMenuContent }
 
-      {isFolder &&
-        isOpen &&
-        children.map((data, idx) => (
-          <TreeNode key={data._id} path={[...path, idx]} {...data} />
-        ))}
+      { isFolder && isOpen && children.map((data, idx) => (
+        <TreeNode key={ data._id } path={ [...path, idx] } { ...data } />
+      ))}
     </>
   );
 };
