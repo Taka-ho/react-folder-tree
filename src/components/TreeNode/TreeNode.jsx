@@ -168,6 +168,8 @@ const TreeNode = ({
     if (isFolder) {
       isFolder && isOpen ? closeMe() : openMe();
     }
+
+    onNameClick && onNameClick(nodeData);
   };
 
   const folderCaret = (
